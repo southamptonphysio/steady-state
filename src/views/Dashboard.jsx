@@ -3,6 +3,7 @@ import { today, dayLabel, mergeEntry, calcTrainingLoad, calcLifeLoad, calcRecove
 import MiniBar from "../components/MiniBar.jsx";
 import WeekChart from "../components/WeekChart.jsx";
 import SymptomChart from "../components/SymptomChart.jsx";
+import InfoTooltip from "../components/InfoTooltip.jsx";
 
 export default function Dashboard({
   entries, signal, saving,
@@ -44,7 +45,9 @@ export default function Dashboard({
               <div style={{ fontFamily: MONO, fontSize: 24, fontWeight: 600, color: signal.readiness.score >= 7 ? "#2A8A84" : signal.readiness.score >= 4 ? "#C4953A" : "#B5534A", lineHeight: 1 }}>
                 {signal.readiness.score}
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 9, color: "#8F979D", letterSpacing: "0.05em" }}>READY</div>
+              <div style={{ fontFamily: MONO, fontSize: 9, color: "#8F979D", letterSpacing: "0.05em" }}>
+                READY<InfoTooltip text="Readiness score (1–10). Weighs your sleep quality, morning symptoms, and recent load history. A higher score means your body is better prepared to handle more today." />
+              </div>
             </div>
           )}
         </div>
@@ -58,7 +61,7 @@ export default function Dashboard({
 
       {/* ACWR */}
       <div style={cardStyle}>
-        <span style={sectionLabel}>Acute : Chronic Ratio</span>
+        <span style={sectionLabel}>Acute : Chronic Ratio<InfoTooltip text="Your 7-day average load divided by your 28-day average. Below 0.8 means you're doing less than usual — possible undertraining or deconditioning. Above 1.15 means you've ramped up quickly, which raises injury and flare risk. The sweet spot is 0.80–1.15." /></span>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
           <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 600, color: signal.color, lineHeight: 1 }}>{signal.acr.ratio.toFixed(2)}</span>
           <span style={{ fontSize: 12, color: "#8F979D" }}>target 0.80 – 1.15</span>
@@ -77,20 +80,26 @@ export default function Dashboard({
 
       {/* Today's load */}
       <div style={cardStyle}>
-        <span style={sectionLabel}>Today's load</span>
+        <span style={sectionLabel}>Today's load<InfoTooltip text="Your combined stress score for today — training, life stress, and symptoms added together. Recovery activities subtract from it. This is the number that feeds into your acute:chronic ratio." /></span>
         {(hasMorning || hasEvening) ? (
           <>
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 12, color: "#2A8A84", marginBottom: 4 }}>Training</div>
+              <div style={{ fontSize: 12, color: "#2A8A84", marginBottom: 4 }}>
+                Training<InfoTooltip text="Load from exercise. Calculated from duration × effort (RPE). A 45-minute session at RPE 7 scores higher than the same time at RPE 4." />
+              </div>
               <MiniBar value={todayTraining} max={Math.max(30, (todayTraining + todayLife) * 1.3)} color="#2A8A84" />
             </div>
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 12, color: "#C4953A", marginBottom: 4 }}>Life</div>
+              <div style={{ fontSize: 12, color: "#C4953A", marginBottom: 4 }}>
+                Life<InfoTooltip text="Load from work, stress, and symptoms. Even rest days have a life load — a stressful day at a desk takes something out of you the same way a workout does." />
+              </div>
               <MiniBar value={todayLife} max={Math.max(30, (todayTraining + todayLife) * 1.3)} color="#C4953A" />
             </div>
             {todayRecovery > 0 && (
               <div style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: "#2A8A84", marginBottom: 4 }}>Recovery credit</div>
+                <div style={{ fontSize: 12, color: "#2A8A84", marginBottom: 4 }}>
+                  Recovery credit<InfoTooltip text="A reduction in your total load earned through restorative activities — breathwork, gentle yoga, foam rolling. It lowers your net load, but doesn't erase it. Think of it as offsetting, not cancelling." />
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ flex: 1, height: 20, background: "#F0EDED", borderRadius: 4, overflow: "hidden", position: "relative" }}>
                     <div style={{ width: `${Math.min(100, (todayRecovery / 5) * 100)}%`, height: "100%", background: "repeating-linear-gradient(135deg, #2A8A84, #2A8A84 4px, #3D9D97 4px, #3D9D97 8px)", borderRadius: 4 }} />
@@ -111,7 +120,7 @@ export default function Dashboard({
 
       {/* 7-day chart */}
       <div style={cardStyle}>
-        <span style={sectionLabel}>7-day load</span>
+        <span style={sectionLabel}>7-day load<InfoTooltip text="Your daily load visualised over the past week. Bars without real logged data are estimated from your baseline so the chart is never empty." /></span>
         <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
           {[["Training", "#2A8A84"], ["Life", "#C4953A"]].map(([l, c]) => (
             <div key={l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -129,7 +138,7 @@ export default function Dashboard({
 
       {/* Symptoms */}
       <div style={cardStyle}>
-        <span style={sectionLabel}>Symptom trends — 7 days</span>
+        <span style={sectionLabel}>Symptom trends — 7 days<InfoTooltip text="Pain, fatigue, and brain fog tracked over the past week. Useful for spotting patterns — like symptoms rising after high-load days or improving after rest." /></span>
         <SymptomChart entries={entries} />
       </div>
 

@@ -1,5 +1,6 @@
 import { FONTS, MONO, EXERCISE_TYPES } from "../lib/constants.js";
 import { clamp } from "../lib/calculations.js";
+import InfoTooltip from "./InfoTooltip.jsx";
 
 export default function ExerciseEntry({ exercise, onUpdate, onRemove }) {
   return (
@@ -24,7 +25,7 @@ export default function ExerciseEntry({ exercise, onUpdate, onRemove }) {
           />
         </div>
         <div>
-          <label style={{ fontFamily: FONTS, fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>RPE (1-10)</label>
+          <label style={{ fontFamily: FONTS, fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>RPE (1–10)<InfoTooltip text="Rate of Perceived Exertion — how hard the session felt. 1 = barely trying. 5 = comfortably hard. 7–8 = hard but sustainable. 10 = absolute maximum." /></label>
           <input
             type="number" min={1} max={10} value={exercise.rpe}
             onChange={e => onUpdate({ ...exercise, rpe: clamp(parseInt(e.target.value) || 1, 1, 10) })}
