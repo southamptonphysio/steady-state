@@ -1,4 +1,6 @@
-const CACHE_NAME = "steadystate-v1";
+// Cache name is stamped with a build timestamp by the post-build script in package.json.
+// This ensures a new cache name on every deploy, forcing old caches to be purged.
+const CACHE_NAME = "steadystate-__BUILD_TIMESTAMP__";
 
 // Resources to cache on install
 const PRECACHE_URLS = [
@@ -30,6 +32,14 @@ self.addEventListener("activate", (event) => {
     )
   );
   self.clients.claim();
+});
+
+// Allow the app (or DevTools) to trigger skip-waiting on demand.
+// The install handler also calls skipWaiting() unconditionally so the SW
+// activates immediately on first install; this message channel lets the
+// app nudge a waiting SW in multi-tab scenarios too.
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("fetch", (event) => {
