@@ -45,7 +45,14 @@ self.addEventListener("message", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // For navigation requests: serve index.html (SPA routing)
+  // Never intercept Supabase API calls or any other cross-origin non-font request.
+  // Letting the SW touch these causes "FetchEvent.respondWith: TypeError: Load failed"
+  // because opaque cross-origin responses can't be safely cached or re-used.
+  const isSameOrigin = url.origin === self.location.origin;
+  const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
+  if (!isSameOrigin && !isFont) return;
+
+  // Navigation requests: serve index.html for SPA routing
   if (event.request.mode === "navigate") {
     event.respondWith(
       caches.match("/index.html").then((cached) => cached || fetch(event.request))
@@ -53,11 +60,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For Google Fonts and static assets: cache-first
-  if (
-    url.hostname === "fonts.googleapis.com" ||
-    url.hostname === "fonts.gstatic.com"
-  ) {
+  // Google Fonts: cache-first
+  if (isFont) {
     event.respondWith(
       caches.match(event.request).then(
         (cached) =>
@@ -72,7 +76,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For local assets: cache-first, falling back to network
+  // Local app assets (JS, CSS, images, etc.): cache-first, falling back to network
   event.respondWith(
     caches.match(event.request).then(
       (cached) =>
