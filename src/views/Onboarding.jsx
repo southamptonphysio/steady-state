@@ -87,9 +87,11 @@ export default function Onboarding({ onComplete }) {
           <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Think about a normal week, not your best or worst.</p>
         </div>
         <div style={cardStyle}>
-          <SliderInput label="Sessions per week" value={data.sessionsPerWeek} onChange={v => u("sessionsPerWeek", v)} min={0} max={7} lowLabel="None" highLabel="Daily" />
+          <SliderInput label="Sessions per week" value={data.sessionsPerWeek} onChange={v => u("sessionsPerWeek", v)} min={0} max={7} lowLabel="None" highLabel="Daily"
+            tooltip="Count your typical weeks, not your best weeks. Be honest — this calibrates your baseline." />
           <SliderInput label="Typical session length (min)" value={data.avgDuration} onChange={v => u("avgDuration", v)} min={10} max={120} step={5} lowLabel="10 min" highLabel="2 hours" />
-          <SliderInput label="Typical effort (RPE)" value={data.avgRPE} onChange={v => u("avgRPE", v)} min={1} max={10} lowLabel="Easy" highLabel="Maximum" />
+          <SliderInput label="Typical effort (RPE)" value={data.avgRPE} onChange={v => u("avgRPE", v)} min={1} max={10} lowLabel="Easy" highLabel="Maximum"
+            tooltip="Rate of Perceived Exertion — how hard your sessions feel. 1 = very easy walk. 5 = comfortably hard. 8+ = tough, hard to sustain. Think about your usual sessions, not your hardest." />
         </div>
         <div style={cardStyle}>
           <span style={sectionLabel}>What do you usually do?</span>
@@ -111,18 +113,24 @@ export default function Onboarding({ onComplete }) {
         <div style={cardStyle}>
           <span style={sectionLabel}>Sleep</span>
           <SliderInput label="Typical sleep hours" value={data.typicalSleep} onChange={v => u("typicalSleep", v)} min={4} max={11} step={0.5} lowLabel="4h" highLabel="11h" />
-          <SliderInput label="Typical sleep quality" value={data.typicalSleepQuality} onChange={v => u("typicalSleepQuality", v)} lowLabel="Poor" highLabel="Restorative" />
+          <SliderInput label="Typical sleep quality" value={data.typicalSleepQuality} onChange={v => u("typicalSleepQuality", v)} lowLabel="Poor" highLabel="Restorative"
+            tooltip="Think about your usual sleep, not your best nights. Low = often unrefreshed, wake frequently. High = generally sleep well and wake feeling rested." />
         </div>
         <div style={cardStyle}>
           <span style={sectionLabel}>Work & stress</span>
-          <SliderInput label="Typical work intensity" value={data.typicalWork} onChange={v => u("typicalWork", v)} lowLabel="Light" highLabel="Demanding" color="#C4953A" />
-          <SliderInput label="Typical stress level" value={data.typicalStress} onChange={v => u("typicalStress", v)} lowLabel="Calm" highLabel="High" color="#C4953A" />
+          <SliderInput label="Typical work intensity" value={data.typicalWork} onChange={v => u("typicalWork", v)} lowLabel="Light" highLabel="Demanding" color="#C4953A"
+            tooltip="Your most common workday, not your busiest. Desk work counts. Physically demanding jobs count more. Low = light tasks, easy pace. High = long hours, high demands." />
+          <SliderInput label="Typical stress level" value={data.typicalStress} onChange={v => u("typicalStress", v)} lowLabel="Calm" highLabel="High" color="#C4953A"
+            tooltip="Your background stress on a normal week — work pressure, personal life, health worries. Low = generally calm. High = regularly stretched thin or overwhelmed." />
         </div>
         <div style={cardStyle}>
           <span style={sectionLabel}>Typical symptom levels</span>
-          <SliderInput label="Pain" value={data.typicalPain} onChange={v => u("typicalPain", v)} lowLabel="None" highLabel="Severe" color="#B5534A" />
-          <SliderInput label="Fatigue" value={data.typicalFatigue} onChange={v => u("typicalFatigue", v)} lowLabel="Energised" highLabel="Exhausted" color="#B5534A" />
-          <SliderInput label="Brain fog" value={data.typicalBrainFog} onChange={v => u("typicalBrainFog", v)} lowLabel="Clear" highLabel="Dense" color="#B5534A" />
+          <SliderInput label="Pain" value={data.typicalPain} onChange={v => u("typicalPain", v)} lowLabel="None" highLabel="Severe" color="#B5534A"
+            tooltip="Your typical pain on an average day, at rest. Low (1–2) = minimal background discomfort. High (8–10) = significant pain affecting how you move or function." />
+          <SliderInput label="Fatigue" value={data.typicalFatigue} onChange={v => u("typicalFatigue", v)} lowLabel="Energised" highLabel="Exhausted" color="#B5534A"
+            tooltip="Physical tiredness on a normal day, not sleepiness. Low = generally have energy to do things. High (8–10) = heavy limbs, even light tasks feel disproportionately hard." />
+          <SliderInput label="Brain fog" value={data.typicalBrainFog} onChange={v => u("typicalBrainFog", v)} lowLabel="Clear" highLabel="Dense" color="#B5534A"
+            tooltip="Typical difficulty concentrating or thinking clearly. Low (1–2) = generally sharp. High (8–10) = regularly struggling to follow conversations or retain information." />
         </div>
       </>
     ),

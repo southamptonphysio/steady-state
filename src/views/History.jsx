@@ -1,7 +1,7 @@
 import { FONTS, MONO, SERIF, cardStyle, sectionLabel, pageStyle } from "../lib/constants.js";
 import { dayLabel, mergeEntry, calcTrainingLoad, calcLifeLoad, calcSymptomScore, calcReadiness } from "../lib/calculations.js";
 
-export default function History({ entries, onEditEntry, onReset, onBack }) {
+export default function History({ entries, onEditEntry, onReset, onLogout, onBack }) {
   const sorted = Object.keys(entries).filter(k => !entries[k].synthetic).sort((a, b) => b.localeCompare(a));
 
   return (
@@ -53,9 +53,12 @@ export default function History({ entries, onEditEntry, onReset, onBack }) {
           </div>
         );
       })}
-      <div style={{ marginTop: 24, textAlign: "center" }}>
+      <div style={{ marginTop: 24, textAlign: "center", display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
         <button onClick={onReset} style={{ background: "none", border: "none", fontFamily: FONTS, fontSize: 12, color: "#C9C4BD", cursor: "pointer", textDecoration: "underline" }}>
           Reset all data
+        </button>
+        <button onClick={onLogout} style={{ background: "none", border: "none", fontFamily: FONTS, fontSize: 12, color: "#B8C2C6", cursor: "pointer" }}>
+          Log out
         </button>
       </div>
     </div>

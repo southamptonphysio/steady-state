@@ -3,6 +3,7 @@ import { dayLabel, calcRecoveryCredit } from "../lib/calculations.js";
 import SliderInput from "../components/SliderInput.jsx";
 import ExerciseEntry from "../components/ExerciseEntry.jsx";
 import RecoveryEntry from "../components/RecoveryEntry.jsx";
+import InfoTooltip from "../components/InfoTooltip.jsx";
 
 export default function LogView({ currentEntry, setCurrentEntry, selectedDate, onSave, onBack }) {
   const isMorning = currentEntry.type === "morning";
@@ -23,11 +24,12 @@ export default function LogView({ currentEntry, setCurrentEntry, selectedDate, o
       {isMorning ? (
         <>
           <div style={cardStyle}>
-            <span style={sectionLabel}>Last night's sleep</span>
+            <span style={sectionLabel}>Last night's sleep<InfoTooltip text="Poor sleep is one of the strongest signals we track — it adds to your life load and pulls your readiness score down. Honest answers here matter more than you might think." /></span>
             <SliderInput
               label="Sleep quality" value={currentEntry.sleepQuality}
               onChange={v => setCurrentEntry(p => ({ ...p, sleepQuality: v }))}
               lowLabel="Terrible" highLabel="Restorative"
+              tooltip="Low (1–3) = woke repeatedly, felt unrefreshed, groggy in the morning. High (8–10) = fell asleep easily, slept through, woke up actually rested."
             />
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
@@ -44,30 +46,36 @@ export default function LogView({ currentEntry, setCurrentEntry, selectedDate, o
             </div>
           </div>
           <div style={cardStyle}>
-            <span style={sectionLabel}>How are you feeling right now?</span>
+            <span style={sectionLabel}>How are you feeling right now?<InfoTooltip text="Morning symptoms before any activity give us your clearest baseline. Rate how you actually feel, not how you hope to feel later." /></span>
             <SliderInput
               label="Pain level" value={currentEntry.painLevel}
               onChange={v => setCurrentEntry(p => ({ ...p, painLevel: v }))}
               lowLabel="None" highLabel="Severe" color="#B5534A"
+              tooltip="Your pain right now, at rest. Low (1–2) = minimal background discomfort you can mostly ignore. High (8–10) = significant pain that's affecting how you move or function."
             />
             <SliderInput
               label="Fatigue" value={currentEntry.fatigueLevel}
               onChange={v => setCurrentEntry(p => ({ ...p, fatigueLevel: v }))}
               lowLabel="Energised" highLabel="Exhausted" color="#B5534A"
+              tooltip="Physical tiredness, not sleepiness. Low = ready to go. High (8–10) = heavy limbs, effort feels disproportionate, even small tasks feel draining."
             />
           </div>
         </>
       ) : (
         <>
           <div style={cardStyle}>
-            <span style={sectionLabel}>Work & stress today</span>
-            <SliderInput label="Work intensity" value={currentEntry.workIntensity} onChange={v => setCurrentEntry(p => ({ ...p, workIntensity: v }))} lowLabel="Light" highLabel="Demanding" color="#C4953A" />
-            <SliderInput label="Overall stress" value={currentEntry.stressLevel} onChange={v => setCurrentEntry(p => ({ ...p, stressLevel: v }))} lowLabel="Calm" highLabel="Overwhelmed" color="#C4953A" />
-            <SliderInput label="Brain fog" value={currentEntry.brainFog} onChange={v => setCurrentEntry(p => ({ ...p, brainFog: v }))} lowLabel="Clear" highLabel="Dense" color="#5B8FB9" />
-            <SliderInput label="Mood" value={currentEntry.mood} onChange={v => setCurrentEntry(p => ({ ...p, mood: v }))} lowLabel="Low" highLabel="Great" color="#5B8FB9" />
+            <span style={sectionLabel}>Work & stress today<InfoTooltip text="Work and stress count as load — even when you're sitting still. A demanding day adds to your total the same way exercise does, and it affects how much training your body can handle." /></span>
+            <SliderInput label="Work intensity" value={currentEntry.workIntensity} onChange={v => setCurrentEntry(p => ({ ...p, workIntensity: v }))} lowLabel="Light" highLabel="Demanding" color="#C4953A"
+              tooltip="How demanding work was today. Low = light tasks, short hours, mostly relaxed. High = long day, tight deadlines, mentally exhausting, or physically demanding shifts." />
+            <SliderInput label="Overall stress" value={currentEntry.stressLevel} onChange={v => setCurrentEntry(p => ({ ...p, stressLevel: v }))} lowLabel="Calm" highLabel="Overwhelmed" color="#C4953A"
+              tooltip="Everything outside work — family demands, health worries, difficult conversations, life admin piling up. Low = calm day. High = stretched thin, hard to switch off." />
+            <SliderInput label="Brain fog" value={currentEntry.brainFog} onChange={v => setCurrentEntry(p => ({ ...p, brainFog: v }))} lowLabel="Clear" highLabel="Dense" color="#5B8FB9"
+              tooltip="Difficulty thinking clearly, concentrating, or finding words. Low (1–2) = sharp and clear. High (8–10) = struggling to follow a conversation or string thoughts together." />
+            <SliderInput label="Mood" value={currentEntry.mood} onChange={v => setCurrentEntry(p => ({ ...p, mood: v }))} lowLabel="Low" highLabel="Great" color="#5B8FB9"
+              tooltip="How you're feeling emotionally today. Low = down, flat, or irritable. High = positive, grounded, generally okay. Neither extreme is wrong — just be honest." />
           </div>
           <div style={cardStyle}>
-            <span style={sectionLabel}>Training</span>
+            <span style={sectionLabel}>Training<InfoTooltip text="Log what you actually did. Duration and RPE together calculate your training load score — it's not just about time, effort matters too." /></span>
             {currentEntry.exercises.map((ex, i) => (
               <ExerciseEntry
                 key={i} exercise={ex}
@@ -108,7 +116,7 @@ export default function LogView({ currentEntry, setCurrentEntry, selectedDate, o
             </button>
             {currentEntry.recovery.length > 0 && (
               <div style={{ marginTop: 10, padding: "8px 12px", background: "#2A8A8408", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#2A8A84" }}>Recovery credit</span>
+                <span style={{ fontSize: 12, color: "#2A8A84" }}>Recovery credit<InfoTooltip text="The amount this subtracts from your total load today. Longer, more effective recovery activities earn more credit." /></span>
                 <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: "#2A8A84" }}>
                   −{calcRecoveryCredit({ recovery: currentEntry.recovery }).toFixed(1)}
                 </span>
