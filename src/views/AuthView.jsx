@@ -2,6 +2,8 @@ import { useState } from "react";
 import { FONTS, SERIF, cardStyle, pageStyle } from "../lib/constants.js";
 import { supabase } from "../lib/supabase.js";
 
+const supabaseConfigured = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const INPUT = {
   width: "100%", fontFamily: FONTS, fontSize: 14,
   padding: "11px 14px", border: "1.5px solid #E2E7EA",
@@ -166,6 +168,10 @@ export default function AuthView({ onSuccess }) {
           </p>
         )}
       </div>
+      {/* DEBUG: remove once env vars confirmed working on Vercel */}
+      <p style={{ marginTop: 32, textAlign: "center", fontSize: 11, color: "#B0B8BC" }}>
+        Supabase connected: {supabaseConfigured ? "yes" : "no"}
+      </p>
     </div>
   );
 }
