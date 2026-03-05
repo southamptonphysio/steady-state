@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node --input-type=commonjs -e \"const f='dist/sw.js',s=require('fs');s.writeFileSync(f,s.readFileSync(f,'utf8').replaceAll('__BUILD_TIMESTAMP__',Date.now()))\"",
     "preview": "vite preview"
   },
   "dependencies": {
