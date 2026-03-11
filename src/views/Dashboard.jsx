@@ -57,11 +57,14 @@ export default function Dashboard({
   const lifeNetPct = gross > 0 ? (netLife / gross) * 100 : 0;
   const recPct     = gross > 0 ? (recCapped / gross) * 100 : 0;
 
+  // Dashboard-local card style with slightly more breathing room
+  const dc = { ...cardStyle, marginBottom: 20 };
+
   return (
     <div style={pageStyle}>
 
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <div style={{ paddingTop: 24, paddingBottom: 8 }}>
+      <div style={{ paddingTop: 44, paddingBottom: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 500, color: "#1C2E33", margin: 0 }}>SteadyState</h1>
@@ -77,36 +80,38 @@ export default function Dashboard({
       </div>
 
       {/* ── Zone card — hero ────────────────────────────────────────── */}
-      <div style={{ ...cardStyle, background: signal.bg, border: `1px solid ${signal.color}28`, padding: "20px 18px 18px", position: "relative" }}>
-        {/* ACWR ratio pill — top right */}
-        <div style={{ position: "absolute", top: 14, right: 16, background: `${signal.color}14`, borderRadius: 20, padding: "2px 9px", display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: signal.color }}>{signal.acr.ratio.toFixed(2)}</span>
-          <span style={{ fontFamily: MONO, fontSize: 9, color: signal.color, opacity: 0.65 }}>ACWR</span>
-        </div>
+      <div style={{ ...dc, background: signal.bg, border: `1px solid ${signal.color}28`, padding: "20px 18px 18px" }}>
 
         {/* Zone label row */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14, paddingRight: 72 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
           <div style={{ width: 38, height: 38, borderRadius: "50%", background: `${signal.color}18`, border: `2px solid ${signal.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0, marginTop: 2 }}>
             {signal.icon}
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: signal.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 3 }}>{signal.zone}</div>
             <div style={{ fontSize: 14, fontWeight: 500, color: "#1C2E33", lineHeight: 1.3 }}>{signal.label}</div>
           </div>
-          {/* Readiness arc — or morning prompt */}
-          {signal.readiness ? (
-            <div style={{ flexShrink: 0, textAlign: "center" }}>
-              <ReadinessArc score={signal.readiness.score} />
-              <div style={{ fontFamily: MONO, fontSize: 9, color: "#8F979D", marginTop: 1, letterSpacing: "0.05em" }}>
-                {signal.readiness.score}/10 READY
-                <InfoTooltip text="Readiness score (1–10). Weighs your sleep quality, morning symptoms, and recent load history. A higher score means your body is better prepared to handle more today." />
-              </div>
+          {/* Right column: readiness arc (or prompt) stacked above ACWR pill */}
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            {signal.readiness ? (
+              <>
+                <ReadinessArc score={signal.readiness.score} />
+                <div style={{ fontFamily: MONO, fontSize: 9, color: "#8F979D", letterSpacing: "0.04em", textAlign: "center" }}>
+                  {signal.readiness.score}/10 READY
+                  <InfoTooltip text="Readiness score (1–10). Weighs your sleep quality, morning symptoms, and recent load history. A higher score means your body is better prepared to handle more today." />
+                </div>
+              </>
+            ) : (
+              <button type="button" onClick={onMorningLog} style={{ background: `${signal.color}10`, border: `1px solid ${signal.color}35`, borderRadius: 8, padding: "7px 10px", fontFamily: FONTS, fontSize: 11, color: signal.color, cursor: "pointer", textAlign: "center", lineHeight: 1.4 }}>
+                Log morning<br />for readiness
+              </button>
+            )}
+            {/* ACWR pill sits below the arc */}
+            <div style={{ background: `${signal.color}14`, borderRadius: 20, padding: "2px 8px", display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: signal.color }}>{signal.acr.ratio.toFixed(2)}</span>
+              <span style={{ fontFamily: MONO, fontSize: 9, color: signal.color, opacity: 0.65 }}>ACWR</span>
             </div>
-          ) : (
-            <button type="button" onClick={onMorningLog} style={{ flexShrink: 0, background: `${signal.color}10`, border: `1px solid ${signal.color}35`, borderRadius: 8, padding: "7px 10px", fontFamily: FONTS, fontSize: 11, color: signal.color, cursor: "pointer", textAlign: "center", lineHeight: 1.4 }}>
-              Log morning<br />for readiness
-            </button>
-          )}
+          </div>
         </div>
 
         {/* Advice */}
@@ -122,7 +127,7 @@ export default function Dashboard({
 
       {/* ── Today's load — stacked bar ──────────────────────────────── */}
       <div
-        style={{ ...cardStyle, cursor: hasCheckIn ? "pointer" : "default", userSelect: "none" }}
+        style={{ ...dc, cursor: hasCheckIn ? "pointer" : "default", userSelect: "none" }}
         onClick={() => hasCheckIn && setLoadExpanded(v => !v)}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: hasCheckIn ? 10 : 0 }}>
@@ -137,15 +142,23 @@ export default function Dashboard({
           <>
             {/* Stacked bar */}
             <div style={{ display: "flex", height: 28, borderRadius: 14, overflow: "hidden", background: "#F0F5F6" }}>
+              {/* Teal hint sliver when life-only (no training) */}
+              {trainPct === 0 && lifeNetPct > 0 && (
+                <div style={{ width: 3, background: "#2A8A84", flexShrink: 0, opacity: 0.4 }} />
+              )}
               {trainPct > 0 && <div style={{ width: `${trainPct}%`, background: "#2A8A84", flexShrink: 0 }} />}
               {lifeNetPct > 0 && <div style={{ width: `${lifeNetPct}%`, background: "#C4953A", flexShrink: 0 }} />}
+              {/* Amber hint sliver when training-only (no life, no recovery) */}
+              {lifeNetPct === 0 && trainPct > 0 && recPct === 0 && (
+                <div style={{ width: 3, background: "#C4953A", flexShrink: 0, opacity: 0.4 }} />
+              )}
               {recPct > 0 && (
                 <div style={{ width: `${recPct}%`, flexShrink: 0, background: "repeating-linear-gradient(135deg, #2A8A84 0px, #2A8A84 3px, #3DA39D 3px, #3DA39D 6px)" }} />
               )}
             </div>
             {/* Net total */}
-            <div style={{ textAlign: "center", marginTop: 7 }}>
-              <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: "#1C2E33" }}>{todayLoad.toFixed(1)}</span>
+            <div style={{ textAlign: "center", marginTop: 6 }}>
+              <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 600, color: "#8F979D" }}>{todayLoad.toFixed(1)}</span>
             </div>
             {/* Expanded breakdown */}
             {loadExpanded && (
@@ -175,7 +188,7 @@ export default function Dashboard({
 
       {/* ── ACWR detail — collapsible ───────────────────────────────── */}
       <div
-        style={{ ...cardStyle, cursor: "pointer", userSelect: "none" }}
+        style={{ ...dc, cursor: "pointer", userSelect: "none" }}
         onClick={() => setAcrExpanded(v => !v)}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -210,7 +223,7 @@ export default function Dashboard({
       </div>
 
       {/* ── 7-day load chart ────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div style={dc}>
         <span style={sectionLabel}>
           7-day load
           <InfoTooltip text="Your daily load over the past week. Bars without real logged data are estimated from your baseline. The dashed line marks your 28-day chronic average." />
@@ -227,7 +240,7 @@ export default function Dashboard({
       </div>
 
       {/* ── Symptom trends + Today's cost ───────────────────────────── */}
-      <div style={cardStyle}>
+      <div style={dc}>
         <span style={sectionLabel}>
           Symptom trends — 7 days
           <InfoTooltip text="Your key symptoms tracked over the past week. Useful for spotting patterns — like symptoms rising after high-load days or improving after rest." />
