@@ -1,5 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <circle cx="256" cy="256" r="256" fill="#1C2E33"/>
-  <circle cx="256" cy="256" r="213" fill="#2A8A84"/>
-  <text x="256" y="310" font-family="Georgia, serif" font-size="150" font-weight="700" fill="#F7F9FA" text-anchor="middle" letter-spacing="-5">SS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="512" height="512">
+  <rect width="192" height="192" rx="42" fill="#2A8A84"/>
+  <path d="M 20,96
+           C 28,40 52,40 62,96
+           C 72,136 96,136 106,96
+           C 116,72 136,72 146,96
+           L 172,96"
+        stroke="white" stroke-width="9" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

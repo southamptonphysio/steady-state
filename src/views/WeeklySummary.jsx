@@ -14,7 +14,7 @@ export default function WeeklySummary({ weekSummary, weekDays, signal, summaryWe
   return (
     <div style={pageStyle}>
       <div style={{ paddingTop: 24, paddingBottom: 12 }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FONTS, fontSize: 13, color: "#8F979D", padding: 0 }}>← Dashboard</button>
+        <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FONTS, fontSize: 13, color: "#8F979D", padding: "4px 0" }}>← Dashboard</button>
         <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "10px 0 0" }}>Weekly summary</h2>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {["current", "previous"].map(w => (
