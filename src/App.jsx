@@ -97,6 +97,12 @@ export default function App() {
   // ── Logging ───────────────────────────────────────────────────────────────
   const entries = appData?.entries || {};
 
+  // Must be defined before logging callbacks that reference it in dependency arrays
+  const selectedSymptoms = useMemo(
+    () => appData?.onboarding?.selectedSymptoms ?? ["pain", "fatigue", "brain_fog"],
+    [appData]
+  );
+
   const startMorningLog = useCallback((date) => {
     setSelectedDate(date);
     const ex = entries[date]?.morning;
@@ -186,12 +192,6 @@ export default function App() {
       setView("dashboard");
     }
   }, []);
-
-  // ── Selected symptoms ─────────────────────────────────────────────────────
-  const selectedSymptoms = useMemo(
-    () => appData?.onboarding?.selectedSymptoms ?? ["pain", "fatigue", "brain_fog"],
-    [appData]
-  );
 
   // ── Derived state ─────────────────────────────────────────────────────────
   const signal = useMemo(() => getDailySignal(entries, selectedSymptoms), [entries, selectedSymptoms]);
