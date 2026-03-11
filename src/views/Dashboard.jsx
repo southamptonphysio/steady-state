@@ -11,7 +11,8 @@ export default function Dashboard({
   todayTraining, todayLife, todayRecovery, todayLoad,
   realDays, streak,
   onMorningLog, onEveningLog,
-  onViewSummary, onViewHistory
+  onViewSummary, onViewHistory,
+  selectedSymptoms
 }) {
   return (
     <div style={pageStyle}>
@@ -139,7 +140,7 @@ export default function Dashboard({
       {/* Symptoms */}
       <div style={cardStyle}>
         <span style={sectionLabel}>Symptom trends — 7 days<InfoTooltip text="Pain, fatigue, and brain fog tracked over the past week. Useful for spotting patterns — like symptoms rising after high-load days or improving after rest." /></span>
-        <SymptomChart entries={entries} />
+        <SymptomChart entries={entries} selectedSymptoms={selectedSymptoms} />
       </div>
 
       {/* Stats */}

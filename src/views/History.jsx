@@ -1,7 +1,7 @@
 import { FONTS, MONO, SERIF, cardStyle, sectionLabel, pageStyle } from "../lib/constants.js";
 import { dayLabel, mergeEntry, calcTrainingLoad, calcLifeLoad, calcSymptomScore, calcReadiness } from "../lib/calculations.js";
 
-export default function History({ entries, onEditEntry, onReset, onLogout, onBack }) {
+export default function History({ entries, onEditEntry, onReset, onLogout, onBack, selectedSymptoms = ["pain", "fatigue", "brain_fog"] }) {
   const sorted = Object.keys(entries).filter(k => !entries[k].synthetic).sort((a, b) => b.localeCompare(a));
 
   return (
@@ -20,7 +20,7 @@ export default function History({ entries, onEditEntry, onReset, onLogout, onBac
         const training = calcTrainingLoad(m);
         const life = calcLifeLoad(m);
         const total = training + life;
-        const rd = calcReadiness(entries, date);
+        const rd = calcReadiness(entries, date, selectedSymptoms);
         return (
           <div key={date} style={{ ...cardStyle, cursor: "pointer" }} onClick={() => onEditEntry(date)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -37,7 +37,7 @@ export default function History({ entries, onEditEntry, onReset, onLogout, onBac
             <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#888" }}>
               <span style={{ color: "#2A8A84" }}>Train {training.toFixed(1)}</span>
               <span style={{ color: "#C4953A" }}>Life {life.toFixed(1)}</span>
-              <span style={{ color: "#B5534A" }}>Sx {calcSymptomScore(e).toFixed(1)}</span>
+              <span style={{ color: "#B5534A" }}>Sx {calcSymptomScore(e, selectedSymptoms).toFixed(1)}</span>
               <span>{e.morning ? "☀" : ""}{e.evening ? " ☾" : ""}</span>
             </div>
             {m.exercises?.length > 0 && (
