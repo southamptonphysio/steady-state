@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { FONTS, MONO, SERIF, cardStyle, sectionLabel, pageStyle } from "../lib/constants.js";
-import { dayLabel } from "../lib/calculations.js";
-import { generateWeekExport } from "../lib/calculations.js";
+import { FONTS, MONO, SERIF, cardStyle, sectionLabel, pageStyle, SYMPTOM_OPTIONS } from "../lib/constants.js";
+import { dayLabel, generateWeekExport } from "../lib/calculations.js";
 import InfoTooltip from "../components/InfoTooltip.jsx";
 
-export default function WeeklySummary({ weekSummary, weekDays, signal, summaryWeek, setSummaryWeek, onBack }) {
+const SYMPTOM_COLORS = ["#B5534A", "#C4953A", "#5B8FB9"];
+
+export default function WeeklySummary({ weekSummary, weekDays, signal, summaryWeek, setSummaryWeek, onBack, selectedSymptoms = ["pain", "fatigue", "brain_fog"] }) {
   const [copied, setCopied] = useState(false);
   const ws = weekSummary;
   const start = dayLabel(weekDays[0]);
   const end = dayLabel(weekDays[6]);
-  const exportText = generateWeekExport(ws, signal.acr);
+  const exportText = generateWeekExport(ws, signal.acr, selectedSymptoms, SYMPTOM_OPTIONS);
 
   return (
     <div style={pageStyle}>
@@ -76,20 +77,24 @@ export default function WeeklySummary({ weekSummary, weekDays, signal, summaryWe
 
           {/* Symptoms */}
           <div style={cardStyle}>
-            <span style={sectionLabel}>Average symptoms<InfoTooltip text="Mean pain, fatigue, and brain fog across all logged days this week. Compare with previous weeks to see whether your symptom load is trending up, down, or staying steady." /></span>
+            <span style={sectionLabel}>Average symptoms<InfoTooltip text="Mean symptom levels across all logged morning check-ins this week. Compare with previous weeks to see whether your symptom load is trending up, down, or staying steady." /></span>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, textAlign: "center" }}>
-              <div>
-                <div style={{ fontFamily: MONO, fontSize: 18, fontWeight: 600, color: "#B5534A" }}>{ws.avgPain.toFixed(1)}</div>
-                <div style={{ fontSize: 10, color: "#8F979D" }}>Pain</div>
-              </div>
-              <div>
-                <div style={{ fontFamily: MONO, fontSize: 18, fontWeight: 600, color: "#C4953A" }}>{ws.avgFatigue.toFixed(1)}</div>
-                <div style={{ fontSize: 10, color: "#8F979D" }}>Fatigue</div>
-              </div>
-              <div>
-                <div style={{ fontFamily: MONO, fontSize: 18, fontWeight: 600, color: "#5B8FB9" }}>{ws.avgFog.toFixed(1)}</div>
-                <div style={{ fontSize: 10, color: "#8F979D" }}>Brain fog<InfoTooltip text="Average difficulty thinking clearly or concentrating across logged days. Consistently high fog often correlates with elevated life load or poor sleep." /></div>
-              </div>
+              {selectedSymptoms.map((id, i) => {
+                const opt = SYMPTOM_OPTIONS.find(s => s.id === id);
+                const avg = ws.symptomAverages?.[id] ?? 0;
+                const delta = ws.deltaAverages?.[id];
+                return (
+                  <div key={id}>
+                    <div style={{ fontFamily: MONO, fontSize: 18, fontWeight: 600, color: SYMPTOM_COLORS[i] ?? "#B5534A" }}>{avg.toFixed(1)}</div>
+                    <div style={{ fontSize: 10, color: "#8F979D" }}>{opt?.label ?? id}</div>
+                    {delta != null && (
+                      <div style={{ fontSize: 10, color: delta > 0.3 ? "#B5534A" : delta < -0.3 ? "#2A8A84" : "#8F979D", marginTop: 2 }}>
+                        {delta >= 0 ? "+" : ""}{delta.toFixed(1)} Δ
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

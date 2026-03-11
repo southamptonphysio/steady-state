@@ -100,31 +100,44 @@ export default function App() {
   const startMorningLog = useCallback((date) => {
     setSelectedDate(date);
     const ex = entries[date]?.morning;
+    // Default symptoms: pull from existing morning.symptoms, or old flat fields, or defaults
+    const defaultSymptoms = Object.fromEntries(
+      selectedSymptoms.map(id => {
+        const val = ex?.symptoms?.[id] ??
+          (id === "pain" ? ex?.painLevel : id === "fatigue" ? ex?.fatigueLevel : null) ??
+          3;
+        return [id, val];
+      })
+    );
     setCurrentEntry({
       type: "morning",
       sleepQuality: ex?.sleepQuality ?? 5,
       sleepHours: ex?.sleepHours ?? 7,
-      painLevel: ex?.painLevel ?? 3,
-      fatigueLevel: ex?.fatigueLevel ?? 3
+      symptoms: defaultSymptoms,
+      prs: ex?.prs ?? 5
     });
     setView("log");
-  }, [entries]);
+  }, [entries, selectedSymptoms]);
 
   const startEveningLog = useCallback((date) => {
     setSelectedDate(date);
     const ex = entries[date]?.evening;
+    const defaultSymptoms = Object.fromEntries(
+      selectedSymptoms.map(id => [id, ex?.symptoms?.[id] ?? 3])
+    );
     setCurrentEntry({
       type: "evening",
-      workIntensity: ex?.workIntensity ?? 5,
-      stressLevel: ex?.stressLevel ?? 5,
-      brainFog: ex?.brainFog ?? 2,
+      mentalDemand: ex?.mentalDemand ?? ex?.workIntensity ?? 5,
+      emotionalLoad: ex?.emotionalLoad ?? ex?.stressLevel ?? 5,
+      physicalDemand: ex?.physicalDemand ?? 3,
       mood: ex?.mood ?? 5,
       exercises: ex?.exercises ?? [],
       recovery: ex?.recovery ?? [],
+      symptoms: defaultSymptoms,
       notes: ex?.notes ?? ""
     });
     setView("log");
-  }, [entries]);
+  }, [entries, selectedSymptoms]);
 
   const saveLog = useCallback(() => {
     const existing = entries[selectedDate] || {};
@@ -135,8 +148,8 @@ export default function App() {
           morning: {
             sleepQuality: currentEntry.sleepQuality,
             sleepHours: currentEntry.sleepHours,
-            painLevel: currentEntry.painLevel,
-            fatigueLevel: currentEntry.fatigueLevel,
+            symptoms: currentEntry.symptoms,
+            prs: currentEntry.prs,
             timestamp: new Date().toISOString()
           }
         }
@@ -144,12 +157,13 @@ export default function App() {
           ...existing,
           synthetic: false,
           evening: {
-            workIntensity: currentEntry.workIntensity,
-            stressLevel: currentEntry.stressLevel,
-            brainFog: currentEntry.brainFog,
+            mentalDemand: currentEntry.mentalDemand,
+            emotionalLoad: currentEntry.emotionalLoad,
+            physicalDemand: currentEntry.physicalDemand,
             mood: currentEntry.mood,
             exercises: currentEntry.exercises,
             recovery: currentEntry.recovery,
+            symptoms: currentEntry.symptoms,
             notes: currentEntry.notes,
             timestamp: new Date().toISOString()
           }
@@ -173,8 +187,14 @@ export default function App() {
     }
   }, []);
 
+  // ── Selected symptoms ─────────────────────────────────────────────────────
+  const selectedSymptoms = useMemo(
+    () => appData?.onboarding?.selectedSymptoms ?? ["pain", "fatigue", "brain_fog"],
+    [appData]
+  );
+
   // ── Derived state ─────────────────────────────────────────────────────────
-  const signal = useMemo(() => getDailySignal(entries), [entries]);
+  const signal = useMemo(() => getDailySignal(entries, selectedSymptoms), [entries, selectedSymptoms]);
 
   const todayEntry = entries[today()];
   const todayMerged = mergeEntry(todayEntry);
@@ -198,7 +218,7 @@ export default function App() {
   const realDays = useMemo(() => Object.values(entries).filter(e => !e.synthetic).length, [entries]);
 
   const weekDays = summaryWeek === "current" ? getCurrentWeekDays() : getPreviousWeekDays();
-  const weekSummary = useMemo(() => calcWeekSummary(entries, weekDays), [entries, weekDays]);
+  const weekSummary = useMemo(() => calcWeekSummary(entries, weekDays, selectedSymptoms), [entries, weekDays, selectedSymptoms]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   if (loading) {
@@ -225,6 +245,7 @@ export default function App() {
         selectedDate={selectedDate}
         onSave={saveLog}
         onBack={() => setView("dashboard")}
+        selectedSymptoms={selectedSymptoms}
       />
     );
   }
@@ -238,6 +259,7 @@ export default function App() {
         summaryWeek={summaryWeek}
         setSummaryWeek={setSummaryWeek}
         onBack={() => setView("dashboard")}
+        selectedSymptoms={selectedSymptoms}
       />
     );
   }
@@ -250,6 +272,7 @@ export default function App() {
         onReset={handleReset}
         onLogout={handleLogout}
         onBack={() => setView("dashboard")}
+        selectedSymptoms={selectedSymptoms}
       />
     );
   }
@@ -271,6 +294,7 @@ export default function App() {
       onEveningLog={() => startEveningLog(today())}
       onViewSummary={() => setView("summary")}
       onViewHistory={() => setView("history")}
+      selectedSymptoms={selectedSymptoms}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FONTS, MONO, SERIF, CONDITIONS, EXERCISE_TYPES, cardStyle, sectionLabel, pageStyle } from "../lib/constants.js";
+import { FONTS, MONO, SERIF, CONDITIONS, EXERCISE_TYPES, SYMPTOM_OPTIONS, cardStyle, sectionLabel, pageStyle } from "../lib/constants.js";
 import { calcTotalLoad } from "../lib/calculations.js";
 import { generateSyntheticBaseline } from "../lib/synthetic.js";
 import SliderInput from "../components/SliderInput.jsx";
@@ -8,17 +8,39 @@ import Chip from "../components/Chip.jsx";
 export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    conditions: [], stability: "stable", sessionsPerWeek: 3, avgDuration: 40, avgRPE: 5,
-    exerciseTypes: ["Gym — Strength"], typicalSleep: 7, typicalSleepQuality: 6,
-    typicalWork: 5, typicalStress: 5, typicalPain: 3, typicalFatigue: 3, typicalBrainFog: 2
+    conditions: [],
+    stability: "stable",
+    selectedSymptoms: ["pain", "fatigue", "brain_fog"],
+    sessionsPerWeek: 3,
+    avgDuration: 40,
+    avgRPE: 5,
+    exerciseTypes: ["Gym — Strength"],
+    typicalSleep: 7,
+    typicalSleepQuality: 6,
+    typicalMentalDemand: 5,
+    typicalEmotionalLoad: 5,
+    typicalPhysicalDemand: 3,
+    typicalSymptoms: { pain: 3, fatigue: 3, brain_fog: 2 }
   });
+
   const u = (k, v) => setData(p => ({ ...p, [k]: v }));
   const toggleList = (k, id) => setData(p => ({
     ...p,
     [k]: p[k].includes(id) ? p[k].filter(c => c !== id) : [...p[k], id]
   }));
+  const toggleSymptom = (id) => setData(p => {
+    const cur = p.selectedSymptoms;
+    if (cur.includes(id)) return { ...p, selectedSymptoms: cur.filter(s => s !== id) };
+    if (cur.length >= 3) return p;
+    return {
+      ...p,
+      selectedSymptoms: [...cur, id],
+      typicalSymptoms: { ...p.typicalSymptoms, [id]: p.typicalSymptoms[id] ?? 3 }
+    };
+  });
 
   const steps = [
+    // 0 — Welcome
     () => (
       <>
         <div style={{ paddingTop: 60, paddingBottom: 20, textAlign: "center" }}>
@@ -29,18 +51,20 @@ export default function Onboarding({ onComplete }) {
         </div>
         <div style={{ ...cardStyle, marginTop: 12 }}>
           <p style={{ fontSize: 14, lineHeight: 1.65, color: "#555", margin: 0 }}>
-            Most fitness apps push you to do more. Most pacing apps assume you can barely function. This sits in between — for people who train but need to manage their total load to stay well. We'll take a couple of minutes to understand your typical patterns so the monitoring works from day one.
+            Most fitness apps push you to do more. Most pacing apps assume you can barely function. This sits in between — for people who train but need to manage their total load to stay well. We'll take a few minutes to understand your typical patterns so the monitoring works from day one.
           </p>
         </div>
         <div style={{ textAlign: "center", marginTop: 8 }}>
-          <p style={{ fontFamily: MONO, fontSize: 11, color: "#8F979D" }}>About 2 minutes</p>
+          <p style={{ fontFamily: MONO, fontSize: 11, color: "#8F979D" }}>About 3 minutes</p>
         </div>
       </>
     ),
+
+    // 1 — Condition + stability (Step 1 of 5)
     () => (
       <>
         <div style={{ paddingTop: 32, paddingBottom: 8 }}>
-          <span style={sectionLabel}>Step 1 of 4</span>
+          <span style={sectionLabel}>Step 1 of 5</span>
           <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>About your condition</h2>
         </div>
         <div style={cardStyle}>
@@ -55,11 +79,11 @@ export default function Onboarding({ onComplete }) {
           <span style={sectionLabel}>Over the past month, have your symptoms been...</span>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
-              { id: "stable", label: "Roughly stable", desc: "Normal ups and downs" },
+              { id: "stable", label: "Roughly stable",    desc: "Normal ups and downs" },
               { id: "better", label: "Better than usual", desc: "A good patch — less symptoms than typical" },
-              { id: "worse", label: "Worse than usual", desc: "Flaring or more limited than your norm" }
+              { id: "worse",  label: "Worse than usual",  desc: "Flaring or more limited than your norm" }
             ].map(opt => (
-              <button key={opt.id} onClick={() => u("stability", opt.id)} style={{
+              <button key={opt.id} type="button" onClick={() => u("stability", opt.id)} style={{
                 display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "12px 16px", borderRadius: 10,
                 border: data.stability === opt.id ? "2px solid #2A8A84" : "1.5px solid #E2E7EA",
                 background: data.stability === opt.id ? "#2A8A8408" : "#FFF", textAlign: "left", cursor: "pointer"
@@ -72,26 +96,69 @@ export default function Onboarding({ onComplete }) {
           {data.stability === "worse" && (
             <div style={{ marginTop: 12, padding: "10px 14px", background: "#C4953A10", border: "1px solid #C4953A30", borderRadius: 8 }}>
               <p style={{ fontSize: 12, color: "#8A7033", margin: 0, lineHeight: 1.5 }}>
-                We'll set your baseline to reflect your <em>typical</em> capacity — not where you are right now. You may start in the underdoing zone. That's expected. It gives you a realistic target to build back to.
+                We'll set your baseline to reflect your <em>typical</em> capacity — not where you are right now. You may start in the underdoing zone. That's expected.
               </p>
             </div>
           )}
         </div>
       </>
     ),
+
+    // 2 — Symptom picker (Step 2 of 5)
+    () => {
+      const count = data.selectedSymptoms.length;
+      return (
+        <>
+          <div style={{ paddingTop: 32, paddingBottom: 8 }}>
+            <span style={sectionLabel}>Step 2 of 5</span>
+            <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>Your key symptoms</h2>
+            <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Which three symptoms affect you most? These become your daily tracking items.</p>
+          </div>
+          <div style={cardStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <span style={{ fontSize: 13, color: "#555" }}>Select exactly 3</span>
+              <span style={{
+                fontFamily: MONO, fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 12,
+                background: count === 3 ? "#2A8A8415" : "#F0F4F5",
+                color: count === 3 ? "#2A8A84" : "#8F979D"
+              }}>{count} of 3 selected</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {SYMPTOM_OPTIONS.map(opt => {
+                const selected = data.selectedSymptoms.includes(opt.id);
+                const disabled = !selected && count >= 3;
+                return (
+                  <button key={opt.id} type="button" onClick={() => !disabled && toggleSymptom(opt.id)} style={{
+                    display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "12px 14px", borderRadius: 10,
+                    border: selected ? "2px solid #2A8A84" : "1.5px solid #E2E7EA",
+                    background: selected ? "#2A8A8408" : disabled ? "#FAFBFC" : "#FFF",
+                    textAlign: "left", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1
+                  }}>
+                    <span style={{ fontFamily: FONTS, fontSize: 14, fontWeight: 600, color: "#1C2E33" }}>{opt.label}</span>
+                    <span style={{ fontFamily: FONTS, fontSize: 12, color: "#888", marginTop: 2, lineHeight: 1.45 }}>{opt.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      );
+    },
+
+    // 3 — Training patterns (Step 3 of 5)
     () => (
       <>
         <div style={{ paddingTop: 32, paddingBottom: 8 }}>
-          <span style={sectionLabel}>Step 2 of 4</span>
+          <span style={sectionLabel}>Step 3 of 5</span>
           <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>Your typical training</h2>
           <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Think about a normal week, not your best or worst.</p>
         </div>
         <div style={cardStyle}>
           <SliderInput label="Sessions per week" value={data.sessionsPerWeek} onChange={v => u("sessionsPerWeek", v)} min={0} max={7} lowLabel="None" highLabel="Daily"
-            tooltip="Count your typical weeks, not your best weeks. Be honest — this calibrates your baseline." />
+            tooltip="Count your typical weeks, not your best weeks. This calibrates your baseline." />
           <SliderInput label="Typical session length (min)" value={data.avgDuration} onChange={v => u("avgDuration", v)} min={10} max={120} step={5} lowLabel="10 min" highLabel="2 hours" />
           <SliderInput label="Typical effort (RPE)" value={data.avgRPE} onChange={v => u("avgRPE", v)} min={1} max={10} lowLabel="Easy" highLabel="Maximum"
-            tooltip="Rate of Perceived Exertion — how hard your sessions feel. 1 = very easy walk. 5 = comfortably hard. 8+ = tough, hard to sustain. Think about your usual sessions, not your hardest." />
+            tooltip="1 = very easy. 5 = comfortably hard. 8+ = tough. Think about your usual sessions." />
         </div>
         <div style={cardStyle}>
           <span style={sectionLabel}>What do you usually do?</span>
@@ -103,10 +170,12 @@ export default function Onboarding({ onComplete }) {
         </div>
       </>
     ),
+
+    // 4 — Life baselines (Step 4 of 5)
     () => (
       <>
         <div style={{ paddingTop: 32, paddingBottom: 8 }}>
-          <span style={sectionLabel}>Step 3 of 4</span>
+          <span style={sectionLabel}>Step 4 of 5</span>
           <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>Life load & symptoms</h2>
           <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Your typical levels on an average day.</p>
         </div>
@@ -114,33 +183,50 @@ export default function Onboarding({ onComplete }) {
           <span style={sectionLabel}>Sleep</span>
           <SliderInput label="Typical sleep hours" value={data.typicalSleep} onChange={v => u("typicalSleep", v)} min={4} max={11} step={0.5} lowLabel="4h" highLabel="11h" />
           <SliderInput label="Typical sleep quality" value={data.typicalSleepQuality} onChange={v => u("typicalSleepQuality", v)} lowLabel="Poor" highLabel="Restorative"
-            tooltip="Think about your usual sleep, not your best nights. Low = often unrefreshed, wake frequently. High = generally sleep well and wake feeling rested." />
+            tooltip="Your usual sleep quality, not your best nights." />
         </div>
         <div style={cardStyle}>
-          <span style={sectionLabel}>Work & stress</span>
-          <SliderInput label="Typical work intensity" value={data.typicalWork} onChange={v => u("typicalWork", v)} lowLabel="Light" highLabel="Demanding" color="#C4953A"
-            tooltip="Your most common workday, not your busiest. Desk work counts. Physically demanding jobs count more. Low = light tasks, easy pace. High = long hours, high demands." />
-          <SliderInput label="Typical stress level" value={data.typicalStress} onChange={v => u("typicalStress", v)} lowLabel="Calm" highLabel="High" color="#C4953A"
-            tooltip="Your background stress on a normal week — work pressure, personal life, health worries. Low = generally calm. High = regularly stretched thin or overwhelmed." />
+          <span style={sectionLabel}>Typical daily demands</span>
+          <SliderInput label="Mental demand" value={data.typicalMentalDemand} onChange={v => u("typicalMentalDemand", v)} lowLabel="Undemanding" highLabel="Exhausting" color="#C4953A"
+            tooltip="All cognitive load — work, admin, planning, decisions. A demanding workday scores high." />
+          <SliderInput label="Emotional load" value={data.typicalEmotionalLoad} onChange={v => u("typicalEmotionalLoad", v)} lowLabel="Light" highLabel="Heavy" color="#C4953A"
+            tooltip="Arguments, worry, grief, health anxiety, caring for others. Managing a chronic condition counts too." />
+          <SliderInput label="Physical demand (outside exercise)" value={data.typicalPhysicalDemand} onChange={v => u("typicalPhysicalDemand", v)} lowLabel="Sedentary" highLabel="Very physical" color="#C4953A"
+            tooltip="Childcare, housework, being on your feet, commuting. Physical load outside your training log." />
         </div>
         <div style={cardStyle}>
           <span style={sectionLabel}>Typical symptom levels</span>
-          <SliderInput label="Pain" value={data.typicalPain} onChange={v => u("typicalPain", v)} lowLabel="None" highLabel="Severe" color="#B5534A"
-            tooltip="Your typical pain on an average day, at rest. Low (1–2) = minimal background discomfort. High (8–10) = significant pain affecting how you move or function." />
-          <SliderInput label="Fatigue" value={data.typicalFatigue} onChange={v => u("typicalFatigue", v)} lowLabel="Energised" highLabel="Exhausted" color="#B5534A"
-            tooltip="Physical tiredness on a normal day, not sleepiness. Low = generally have energy to do things. High (8–10) = heavy limbs, even light tasks feel disproportionately hard." />
-          <SliderInput label="Brain fog" value={data.typicalBrainFog} onChange={v => u("typicalBrainFog", v)} lowLabel="Clear" highLabel="Dense" color="#B5534A"
-            tooltip="Typical difficulty concentrating or thinking clearly. Low (1–2) = generally sharp. High (8–10) = regularly struggling to follow conversations or retain information." />
+          <p style={{ fontSize: 12, color: "#8F979D", margin: "0 0 14px", lineHeight: 1.5 }}>
+            Your 3 chosen symptoms on an average day, at rest.
+          </p>
+          {data.selectedSymptoms.map(id => {
+            const opt = SYMPTOM_OPTIONS.find(s => s.id === id);
+            if (!opt) return null;
+            return (
+              <SliderInput
+                key={id}
+                label={`Typical ${opt.label.toLowerCase()}`}
+                value={data.typicalSymptoms[id] ?? 3}
+                onChange={v => u("typicalSymptoms", { ...data.typicalSymptoms, [id]: v })}
+                lowLabel={opt.lowLabel}
+                highLabel={opt.highLabel}
+                color="#B5534A"
+                tooltip={opt.description}
+              />
+            );
+          })}
         </div>
       </>
     ),
+
+    // 5 — Baseline preview (Step 5 of 5)
     () => {
       const se = generateSyntheticBaseline(data);
       const sc = Object.values(se).reduce((s, e) => s + calcTotalLoad(e), 0) / 28;
       return (
         <>
           <div style={{ paddingTop: 32, paddingBottom: 8 }}>
-            <span style={sectionLabel}>Step 4 of 4</span>
+            <span style={sectionLabel}>Step 5 of 5</span>
             <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>Your baseline</h2>
           </div>
           <div style={cardStyle}>
@@ -157,6 +243,19 @@ export default function Onboarding({ onComplete }) {
                 <div style={{ fontSize: 11, color: "#8F979D", marginTop: 2 }}>Sessions / week</div>
               </div>
             </div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F979D", marginBottom: 6 }}>Tracking</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {data.selectedSymptoms.map(id => {
+                  const opt = SYMPTOM_OPTIONS.find(s => s.id === id);
+                  return (
+                    <span key={id} style={{ fontSize: 12, background: "#2A8A8412", color: "#2A8A84", padding: "3px 10px", borderRadius: 12, fontFamily: FONTS }}>
+                      {opt?.label ?? id}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
             <p style={{ fontSize: 13, lineHeight: 1.55, color: "#777", margin: 0 }}>
               We've seeded 28 days of estimated data so your acute:chronic ratio works immediately. As you log real days, synthetic data will naturally age out.
             </p>
@@ -166,18 +265,22 @@ export default function Onboarding({ onComplete }) {
     }
   ];
 
+  const canContinue = step !== 2 || data.selectedSymptoms.length === 3;
+
   return (
     <div style={{ ...pageStyle, padding: "0 20px 120px" }}>
       {steps[step]()}
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         {step > 0 && (
-          <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: "13px 0", borderRadius: 10, border: "1px solid #E2E7EA", background: "#FFF", color: "#4A4A4A", fontFamily: FONTS, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+          <button type="button" onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: "13px 0", borderRadius: 10, border: "1px solid #E2E7EA", background: "#FFF", color: "#4A4A4A", fontFamily: FONTS, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
             Back
           </button>
         )}
         <button
+          type="button"
+          disabled={!canContinue}
           onClick={() => step < steps.length - 1 ? setStep(s => s + 1) : onComplete(data)}
-          style={{ flex: step === 0 ? 1 : 2, padding: "13px 0", borderRadius: 10, border: "none", background: "#1C2E33", color: "#F7F9FA", fontFamily: FONTS, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+          style={{ flex: step === 0 ? 1 : 2, padding: "13px 0", borderRadius: 10, border: "none", background: canContinue ? "#1C2E33" : "#B0BAC0", color: "#F7F9FA", fontFamily: FONTS, fontSize: 14, fontWeight: 600, cursor: canContinue ? "pointer" : "default" }}
         >
           {step === 0 ? "Get started" : step === steps.length - 1 ? "Start tracking" : "Continue"}
         </button>
