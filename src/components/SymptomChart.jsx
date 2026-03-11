@@ -34,8 +34,7 @@ export default function SymptomChart({ entries, selectedSymptoms = ["pain", "fat
   }).join(" ");
 
   // Today's morning-to-evening delta (last day in array = today)
-  const todayMerged = mergeEntry(entries[days[6]]);
-  const hasDelta = todayMerged?.morningSymptoms && todayMerged?.eveningSymptoms;
+  // Removed — Dashboard renders this as "Today's cost" arrow section instead
 
   return (
     <div style={{ width: "100%", overflow: "hidden" }}>
@@ -65,30 +64,6 @@ export default function SymptomChart({ entries, selectedSymptoms = ["pain", "fat
           );
         })}
       </div>
-
-      {/* Today's morning-to-evening delta */}
-      {hasDelta && (
-        <div style={{ marginTop: 10, padding: "8px 10px", background: "#F7F9FA", borderRadius: 6 }}>
-          <div style={{ fontFamily: FONTS, fontSize: 10, color: "#8F979D", marginBottom: 4 }}>Today — morning vs evening</div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {selectedSymptoms.map((id, i) => {
-              const morning = todayMerged.morningSymptoms[id] ?? 0;
-              const evening = todayMerged.eveningSymptoms[id] ?? 0;
-              const delta = evening - morning;
-              const opt = SYMPTOM_OPTIONS.find(s => s.id === id);
-              return (
-                <div key={id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ fontFamily: FONTS, fontSize: 10, color: "#888" }}>{opt?.label ?? id}:</span>
-                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, fontWeight: 600, color: SYMPTOM_COLORS[i] ?? "#888" }}>{morning}</span>
-                  <span style={{ fontSize: 10, color: delta > 0.5 ? "#B5534A" : delta < -0.5 ? "#2A8A84" : "#8F979D" }}>
-                    → {evening} ({delta >= 0 ? "+" : ""}{delta.toFixed(0)})
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
