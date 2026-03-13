@@ -59,6 +59,7 @@ export default function Dashboard({
 
   // Dashboard-local card style with slightly more breathing room
   const dc = { ...cardStyle, marginBottom: 20 };
+  const isNewUser = realDays === 0;
 
   return (
     <div style={pageStyle}>
@@ -79,7 +80,17 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* ── Zone card — hero ────────────────────────────────────────── */}
+      {/* ── Zone card — hero (or welcome card for new users) ───────── */}
+      {isNewUser ? (
+        <div style={{ ...dc, background: "#F0F5F6", border: "1px solid #E5EAED", padding: "24px 20px 22px" }}>
+          <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", marginBottom: 10 }}>
+            You're all set
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.65, color: "#5A5A5A", margin: 0 }}>
+            Your baseline is ready. Log your first morning or evening check-in and your daily signal will appear here.
+          </p>
+        </div>
+      ) : (
       <div style={{ ...dc, background: signal.bg, border: `1px solid ${signal.color}28`, padding: "20px 18px 18px" }}>
 
         {/* Zone label row */}
@@ -124,6 +135,7 @@ export default function Dashboard({
           </p>
         )}
       </div>
+      )} {/* end isNewUser ternary */}
 
       {/* ── Today's load — stacked bar ──────────────────────────────── */}
       <div
@@ -182,12 +194,14 @@ export default function Dashboard({
             )}
           </>
         ) : (
-          <p style={{ fontSize: 13, color: "#8F979D", margin: 0 }}>No check-in yet today.</p>
+          <p style={{ fontSize: 13, color: "#8F979D", margin: 0 }}>
+            {isNewUser ? "Log your first check-in to see today's load." : "No check-in yet today."}
+          </p>
         )}
       </div>
 
-      {/* ── ACWR detail — collapsible ───────────────────────────────── */}
-      <div
+      {/* ── ACWR detail — collapsible (hidden for new users) ───────── */}
+      {!isNewUser && <div
         style={{ ...dc, cursor: "pointer", userSelect: "none" }}
         onClick={() => setAcrExpanded(v => !v)}
       >
@@ -220,7 +234,7 @@ export default function Dashboard({
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* ── 7-day load chart ────────────────────────────────────────── */}
       <div style={dc}>
