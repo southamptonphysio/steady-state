@@ -2,10 +2,9 @@ import { useState } from "react";
 import { FONTS, MONO, EXERCISE_TYPES } from "../lib/constants.js";
 import { clamp } from "../lib/calculations.js";
 import InfoTooltip from "./InfoTooltip.jsx";
+import Combobox from "./Combobox.jsx";
 
 export default function ExerciseEntry({ exercise, onUpdate, onRemove }) {
-  // Local string state lets the user clear & retype without the controlled
-  // input fighting them. Values are committed (and clamped) on blur.
   const [durStr, setDurStr] = useState(String(exercise.duration));
   const [rpeStr, setRpeStr] = useState(String(exercise.rpe));
 
@@ -24,17 +23,14 @@ export default function ExerciseEntry({ exercise, onUpdate, onRemove }) {
   return (
     <div style={{ background: "#F5F8F9", border: "1px solid #E2E7EA", borderRadius: 8, padding: 14, marginBottom: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <input
-          list="exercise-types-list"
+        <Combobox
           value={exercise.type}
-          onChange={e => onUpdate({ ...exercise, type: e.target.value })}
-          placeholder="Type or choose exercise…"
-          style={{ fontFamily: FONTS, fontSize: 13, padding: "6px 10px", border: "1px solid #DDD", borderRadius: 6, background: "#FFF", color: "#4A4A4A", outline: "none", flex: 1, marginRight: 8 }}
+          onChange={type => onUpdate({ ...exercise, type })}
+          options={EXERCISE_TYPES}
+          placeholder="Choose or type exercise…"
+          borderColor="#DDD"
         />
-        <datalist id="exercise-types-list">
-          {EXERCISE_TYPES.map(t => <option key={t} value={t} />)}
-        </datalist>
-        <button type="button" onClick={onRemove} style={{ background: "none", border: "none", color: "#B5534A", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 6px" }}>×</button>
+        <button type="button" onClick={onRemove} style={{ background: "none", border: "none", color: "#B5534A", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 6px", flexShrink: 0 }}>×</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div>

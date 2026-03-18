@@ -127,13 +127,6 @@ export default function Dashboard({
 
         {/* Advice */}
         <p style={{ fontSize: 14, lineHeight: 1.65, color: "#5A5A5A", margin: 0 }}>{signal.advice}</p>
-
-        {/* Readiness modifier */}
-        {signal.readinessModifier && (
-          <p style={{ fontSize: 13, lineHeight: 1.55, color: signal.color, margin: "12px 0 0", padding: "10px 12px", background: `${signal.color}10`, borderRadius: 8, fontWeight: 500 }}>
-            {signal.readinessModifier}
-          </p>
-        )}
       </div>
       )} {/* end isNewUser ternary */}
 
