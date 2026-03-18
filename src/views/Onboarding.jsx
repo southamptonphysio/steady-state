@@ -107,26 +107,29 @@ export default function Onboarding({ onComplete }) {
     // 2 — Symptom picker (Step 2 of 5)
     () => {
       const count = data.selectedSymptoms.length;
+      const atMax = count >= 3;
       return (
         <>
           <div style={{ paddingTop: 32, paddingBottom: 8 }}>
             <span style={sectionLabel}>Step 2 of 5</span>
             <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "4px 0 0" }}>Your key symptoms</h2>
-            <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Which three symptoms affect you most? These become your daily tracking items.</p>
+            <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Pick up to three symptoms that affect you most. These become your daily tracking items.</p>
           </div>
           <div style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <span style={{ fontSize: 13, color: "#555" }}>Select exactly 3</span>
+              <span style={{ fontSize: 13, color: atMax ? "#C4953A" : "#555" }}>
+                {atMax ? "Maximum reached — deselect to change" : "Select 1–3"}
+              </span>
               <span style={{
                 fontFamily: MONO, fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 12,
-                background: count === 3 ? "#2A8A8415" : "#F0F4F5",
-                color: count === 3 ? "#2A8A84" : "#8F979D"
-              }}>{count} of 3 selected</span>
+                background: count >= 1 ? "#2A8A8415" : "#F0F4F5",
+                color: count >= 1 ? "#2A8A84" : "#8F979D"
+              }}>{count} selected</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {SYMPTOM_OPTIONS.map(opt => {
                 const selected = data.selectedSymptoms.includes(opt.id);
-                const disabled = !selected && count >= 3;
+                const disabled = !selected && atMax;
                 return (
                   <button key={opt.id} type="button" onClick={() => !disabled && toggleSymptom(opt.id)} style={{
                     display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "12px 14px", borderRadius: 10,
@@ -197,7 +200,7 @@ export default function Onboarding({ onComplete }) {
         <div style={cardStyle}>
           <span style={sectionLabel}>Typical symptom levels</span>
           <p style={{ fontSize: 12, color: "#8F979D", margin: "0 0 14px", lineHeight: 1.5 }}>
-            Your 3 chosen symptoms on an average day, at rest.
+            Your chosen symptoms on an average day, at rest.
           </p>
           {data.selectedSymptoms.map(id => {
             const opt = SYMPTOM_OPTIONS.find(s => s.id === id);
@@ -265,7 +268,7 @@ export default function Onboarding({ onComplete }) {
     }
   ];
 
-  const canContinue = step !== 2 || data.selectedSymptoms.length === 3;
+  const canContinue = step !== 2 || data.selectedSymptoms.length >= 1;
 
   return (
     <div style={{ ...pageStyle, padding: "0 20px 120px" }}>

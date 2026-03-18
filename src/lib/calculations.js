@@ -175,15 +175,32 @@ export function calcSymptomScore(entry, selectedSymptoms) {
   return ((m.painLevel || 0) + (m.fatigueLevel || 0) + (m.brainFog || 0)) / 3;
 }
 
+// ── Recent mean load for imputation ──────────────────────────────────
+// Returns mean total load from real (non-synthetic) entries in the last `window` days.
+// Used as imputed value for days with no entry in EWMA calculations.
+export function calcRecentMeanLoad(entries, window = 14) {
+  const dayList = nDaysAgo(window);
+  const realLoads = dayList
+    .map(d => entries[d])
+    .filter(e => e && !e.synthetic)
+    .map(e => calcTotalLoad(e));
+  if (realLoads.length === 0) return 0;
+  return realLoads.reduce((a, b) => a + b, 0) / realLoads.length;
+}
+
 // ── EWMA (Exponentially Weighted Moving Average) ──────────────────────
 // Processes days oldest-first so recent days have highest weight.
 // lambda = 2 / (N + 1): acute (7d) → 0.25, chronic (28d) → ~0.069
-export function calcEWMA(entries, days, lambda) {
+// imputedLoad: fallback for days with no entry (uses recent mean to avoid zero bias).
+export function calcEWMA(entries, days, lambda, imputedLoad = 0) {
   const dayList = nDaysAgo(days);
-  let ewma = calcTotalLoad(entries[dayList[0]]);
+  const getLoad = d => {
+    const e = entries[d];
+    return e ? calcTotalLoad(e) : imputedLoad;
+  };
+  let ewma = getLoad(dayList[0]);
   for (let i = 1; i < dayList.length; i++) {
-    const load = calcTotalLoad(entries[dayList[i]]);
-    ewma = load * lambda + ewma * (1 - lambda);
+    ewma = getLoad(dayList[i]) * lambda + ewma * (1 - lambda);
   }
   return ewma;
 }
@@ -192,8 +209,9 @@ export function calcEWMA(entries, days, lambda) {
 export function getAcuteChronicRatio(entries) {
   const acuteLambda   = 2 / (7  + 1);  // 0.25
   const chronicLambda = 2 / (28 + 1);  // ~0.069
-  const acute   = calcEWMA(entries, 7,  acuteLambda);
-  const chronic = calcEWMA(entries, 28, chronicLambda);
+  const imputed = calcRecentMeanLoad(entries, 14);
+  const acute   = calcEWMA(entries, 7,  acuteLambda,  imputed);
+  const chronic = calcEWMA(entries, 28, chronicLambda, imputed);
   if (chronic === 0) return { ratio: 1.0, acute, chronic };
   return { ratio: acute / chronic, acute, chronic };
 }
@@ -361,20 +379,22 @@ export function getDailySignal(entries, selectedSymptoms = ["pain", "fatigue", "
     pemTrigger = checkPEMTrigger(entries, today());
   }
 
-  let readinessModifier = null;
+  // Build unified advice: merge zone advice + readiness modifier into one paragraph
+  let advice = baseAdvice;
   if (pemTrigger) {
-    readinessModifier = pemTrigger.daysAgo === 2
-      ? `Your readiness is low and you had a high-load day 2 days ago. This could be delayed post-exertional response. If this is a pattern for you, it's worth planning lighter days 48 hours after bigger efforts.`
-      : `Low readiness may be connected to elevated load 3 days ago. Post-exertional malaise typically peaks 24–72 hours after the triggering activity.`;
+    const pemNote = pemTrigger.daysAgo === 2
+      ? `Your readiness is low and you had a high-load day 2 days ago — this may be a delayed post-exertional response. If this is a pattern, plan lighter days 48 hours after bigger efforts.`
+      : `Low readiness may be linked to elevated load 3 days ago. Post-exertional malaise typically peaks 24–72 hours after the triggering activity.`;
+    advice = `${baseAdvice} ${pemNote}`;
   } else if (readiness) {
     if (readiness.score <= 3 && zone !== "RED") {
-      readinessModifier = "Your readiness is low this morning. Regardless of what the load numbers say, listen to your body — lighter activity or rest today.";
+      advice = `${baseAdvice} Your readiness is low this morning — listen to your body regardless of load numbers. Lighter activity or rest today.`;
     } else if (readiness.score <= 5 && (zone === "STEADY STATE" || zone === "UNDERDOING")) {
-      readinessModifier = "Readiness is moderate. You've got capacity on paper but your body's telling a different story — take it easier today.";
+      advice = `${baseAdvice} Readiness is moderate — you've got capacity on paper but your body is telling a different story. Take it easier today.`;
     } else if (readiness.score >= 8 && zone === "UNDERDOING") {
-      readinessModifier = "You're feeling good and you're below baseline. Today's a great day for a solid session — use it.";
+      advice = `${baseAdvice} You're feeling good and you're below baseline — today's a great day for a solid session.`;
     } else if (readiness.score >= 7 && zone === "STEADY STATE") {
-      readinessModifier = "Feeling fresh and load is on track. Good conditions to push slightly if you're looking to progress.";
+      advice = `${baseAdvice} Feeling fresh and load is on track — good conditions to push slightly if you're looking to progress.`;
     }
   }
 
@@ -385,7 +405,7 @@ export function getDailySignal(entries, selectedSymptoms = ["pain", "fatigue", "
     RED:            { color: "#B5534A", bg: "rgba(181,83,74,0.06)",   icon: "⚠", label: "Flare risk — pull back" }
   };
 
-  return { zone, acr, readiness, ...zoneStyles[zone], advice: baseAdvice, readinessModifier };
+  return { zone, acr, readiness, ...zoneStyles[zone], advice };
 }
 
 // ── Weekly summary ────────────────────────────────────────────────────

@@ -17,9 +17,9 @@ export default function LogView({ currentEntry, setCurrentEntry, selectedDate, o
 
   return (
     <div style={pageStyle}>
-      <div style={{ paddingTop: 24, paddingBottom: 12 }}>
+      <div style={{ paddingTop: 40, paddingBottom: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FONTS, fontSize: 13, color: "#8F979D", padding: "4px 0" }}>← Back</button>
+          <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FONTS, fontSize: 13, color: "#8F979D", padding: "10px 12px 10px 0", minHeight: 44, minWidth: 44, display: "flex", alignItems: "center" }}>← Back</button>
           <span style={{ fontFamily: MONO, fontSize: 11, color: "#8F979D" }}>{dayLabel(selectedDate)}</span>
         </div>
         <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, color: "#1C2E33", margin: "10px 0 0" }}>
